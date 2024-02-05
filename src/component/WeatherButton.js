@@ -1,24 +1,27 @@
 import { Button } from "react-bootstrap";
+import styled from "styled-components";
 
-const WeatherButton = ({ handleLocation }) => {
+const WeatherButton = ({ cities, cityChanger }) => {
+    console.log(cities);
+    const WeatherButton = styled.div`
+        display: flex;
+        gap: 10px;
+    `;
     return (
-        <div>
-            <Button variant="outline-success" onClick={() => handleLocation()}>
+        <WeatherButton>
+            <Button variant="outline-success" onClick={() => cityChanger("")}>
                 Current Location
             </Button>
-            <Button
-                variant="outline-success"
-                onClick={() => handleLocation("jeju")}
-            >
-                jeju
-            </Button>
-            <Button
-                variant="outline-success"
-                onClick={() => handleLocation("new york")}
-            >
-                new york
-            </Button>
-        </div>
+            {cities.map((item, index) => (
+                <Button
+                    variant={item.status ? "success" : "outline-success"}
+                    onClick={() => cityChanger(`${item.city}`)}
+                    key={index}
+                >
+                    {item.city}
+                </Button>
+            ))}
+        </WeatherButton>
     );
 };
 export default WeatherButton;
