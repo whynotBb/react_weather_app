@@ -15,6 +15,7 @@ const SearchBox = ({ cities, cityChanger }) => {
             background: none;
         }
         border: 1px solid #dedede;
+        border-radius: 4px;
         padding: 10px;
     `;
     const inputRef = useRef(null);
