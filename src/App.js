@@ -5,6 +5,7 @@ import WeatherBox from "./component/WeatherBox";
 import WeatherButton from "./component/WeatherButton";
 import { Button } from "react-bootstrap";
 import { ScaleLoader } from "react-spinners";
+import SearchBox from "./component/SearchBox";
 
 // 1. 앱이 실행되자마자 현위치 기반의 날씨 보인다.
 // 2. 날씨 정보에는 도시, 섭씨, 화씨, 날씨 상태
@@ -15,19 +16,19 @@ import { ScaleLoader } from "react-spinners";
 function App() {
     const [weather, setWeather] = useState(null);
     const [city, setCity] = useState("");
-    // const cities = ["jeju", "new york"];
-    const cities = [
-        {
-            city: "jeju",
-            status: true,
-        },
-        {
-            city: "new york",
-            status: false,
-        },
+    const [status, setStatus] = useState(false);
+    const [error, setError] = useState(false);
+    const [errorCode, setErrorCode] = useState("");
+    const errorTxt = [
+        { code: "400", txt: "잘못된 요청입니다." },
+        { code: "401", txt: "승인되지 않은 요청입니다." },
+        { code: "404", txt: "찾을 수 없습니다." },
+        { code: "429", txt: "요청이 너무 많습니다." },
     ];
+    const cities = ["jeju", "paris", "new york", "seoul"];
     const cityChanger = (city) => {
         setCity(city);
+        setStatus(true);
     };
     const [loading, setLoading] = useState(true);
     const getCurrentLocation = () => {
@@ -44,22 +45,51 @@ function App() {
     };
 
     const getWeatherByCurrentLocation = async (lat, lon) => {
-        let url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=6dd95cfc5f180ab7bf62671b417e6c68&units=metric`;
-        setLoading(true);
-        let response = await fetch(url);
-        let data = await response.json();
-        console.log(data);
-        setWeather(data);
-        setLoading(false);
+        try {
+            let url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=6dd95cfc5f180ab7bf62671b417e6c68&units=metric`;
+            setLoading(true);
+            let response = await fetch(url);
+
+            if (!response.ok) {
+                // Handle non-successful HTTP responses
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            let data = await response.json();
+            console.log(data);
+            setWeather(data);
+            setLoading(false);
+        } catch (error) {
+            // Handle any errors that occurred during the fetch or processing of data
+            console.error("Error fetching weather data:", error.message);
+            setError(true);
+            setLoading(false);
+        }
     };
     const getWeatherByCity = async () => {
-        let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=6dd95cfc5f180ab7bf62671b417e6c68&units=metric`;
-        setLoading(true);
-        let response = await fetch(url);
-        let data = await response.json();
-        console.log(data);
-        setWeather(data);
-        setLoading(false);
+        try {
+            let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=6dd95cfc5f180ab7bf62671b417e6c68&units=metric`;
+            setLoading(true);
+            let response = await fetch(url);
+
+            if (!response.ok) {
+                // Handle non-successful HTTP responses
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            let data = await response.json();
+            console.log(data);
+            setWeather(data);
+            setLoading(false);
+        } catch (error) {
+            // Handle any errors that occurred during the fetch or processing of data
+            console.error("Error fetching weather data:", error.code);
+            const errorCode = error.message.slice(-3);
+            console.log(errorCode);
+            setError(true);
+            setLoading(false);
+            setErrorCode(errorCode);
+        }
     };
 
     useEffect(() => {
@@ -67,7 +97,9 @@ function App() {
             city ? getWeatherByCity() : getCurrentLocation();
         }
     }, [city]);
-
+    const reloadPage = () => {
+        window.location.reload();
+    };
     return (
         <>
             <div>
@@ -78,13 +110,28 @@ function App() {
                             loading={loading}
                             size={150}
                         />
-                    ) : (
+                    ) : !error ? (
                         <>
-                            <WeatherBox weather={weather} />
-                            <WeatherButton
+                            <SearchBox
                                 cities={cities}
                                 cityChanger={cityChanger}
                             />
+                            <WeatherBox weather={weather} />
+                            <WeatherButton
+                                cities={cities}
+                                selectedCity={city}
+                                cityChanger={cityChanger}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            {errorTxt.map(
+                                (item, index) =>
+                                    item.code === errorCode && <p>{item.txt}</p>
+                            )}
+                            <Button onClick={reloadPage}>
+                                Current Location
+                            </Button>
                         </>
                     )}
                 </div>
