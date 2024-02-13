@@ -6,13 +6,14 @@ import WeatherButton from "./component/WeatherButton";
 import { Button } from "react-bootstrap";
 import { ScaleLoader } from "react-spinners";
 import SearchBox from "./component/SearchBox";
+import Homepage from "./page/Homepage";
+import Aboutpage from "./page/Aboutpage";
+import { Routes, Route, Navigate } from "react-router-dom";
+import ProductPage from "./page/ProductPage";
+import ProductDetailPage from "./page/ProductDetailPage";
+import LoginPage from "./page/LoginPage";
+import User from "./page/User";
 
-// 1. 앱이 실행되자마자 현위치 기반의 날씨 보인다.
-// 2. 날씨 정보에는 도시, 섭씨, 화씨, 날씨 상태
-// 3. 5개의 버튼 = 1. 현위치, 4개는 다른도시
-// 4. 도시 버튼 클릭 시 도시별 날씨
-// 5. 현재위치 버튼을 누르면, 다시 현위치 기반의 날씨가 제공
-// 6. 데이터를 가져오는 동안 로딩 스피너
 function App() {
     const [weather, setWeather] = useState(null);
     const [city, setCity] = useState("");
@@ -100,8 +101,33 @@ function App() {
     const reloadPage = () => {
         window.location.reload();
     };
+
+    const [authenticate, setAuthenticate] = useState(false);
+    // PrivateRoute -> 보호해야할 페이지가 있을때, 리다이렉트할 페이지를 설정 해 준다.
+    const PrivateRoute = () => {
+        return authenticate === true ? <User /> : <Navigate to="/login" />;
+        // Navigate -> redirect 할 수 있도록 도와주는 컴포넌트(react router dom 에서 제공)
+    };
     return (
         <>
+            <div>
+                <Routes>
+                    <Route path="/" element={<Homepage />} />
+                    <Route path="/about" element={<Aboutpage />} />
+                    <Route path="/products" element={<ProductPage />} />
+                    <Route
+                        path="/products/:id"
+                        element={<ProductDetailPage />}
+                    />
+                    {/* <Route
+                        path="/products/:id/:num"
+                        element={<ProductDetailPage />}
+                    /> */}
+                    {/* ㄴ> 컴포넌트에서는 usePrams를 통해 {id:'aa',num:'123'}으로 받아 이용할 수 있음  */}
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/user" element={<PrivateRoute />} />
+                </Routes>
+            </div>
             <div>
                 <div className="container">
                     {loading ? (
